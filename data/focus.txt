@@ -1,0 +1,6 @@
+# Focus list: un ticker por línea.
+# Estos tickers reciben análisis profundo (fundamental + sentimiento) en cada
+# corrida diaria, aunque no estén entre los mejores candidatos técnicos.
+# Ejemplo:
+# NVDA
+# TSLA
