@@ -698,6 +698,111 @@ def trade_plan(f, sig, setup):
                 shares_per_10k=shares_per_10k)
 
 
+# ----------------------------- Backtest ---------------------------------------
+def run_backtest(raw):
+    """Evalúa los picks de scans históricos contra la evolución posterior.
+    Reglas: entrada al cierre del día del scan; primer toque del objetivo 2R
+    (+2R) o del stop (-1R); doble toque el mismo día cuenta como stop
+    (conservador); si en HORIZON ruedas no tocó ninguno, cierra a mercado."""
+    import glob
+    HORIZON = 40
+    files = sorted(glob.glob(os.path.join(DATA_DIR, "scan_*.json")))
+    try:
+        spy_close = raw["SPY"]["Close"].dropna()
+    except Exception:
+        spy_close = None
+    signals, n_scans, first, last = [], 0, None, None
+    for fp in files:
+        try:
+            with open(fp) as fh:
+                sc = json.load(fh)
+        except Exception:
+            continue
+        as_of, picks = sc.get("as_of"), sc.get("picks") or []
+        if not as_of or not picks:
+            continue
+        n_scans += 1
+        first, last = first or as_of, as_of
+        cutoff = pd.Timestamp(as_of)
+        for p in picks:
+            t, plan = p.get("ticker"), p.get("plan") or {}
+            entry, stop, t1 = plan.get("entry"), plan.get("stop"), plan.get("t1")
+            if not (t and entry and stop and t1) or entry <= stop:
+                continue
+            try:
+                px = raw[t].dropna(how="all")
+            except Exception:
+                continue
+            fwd = px[px.index > cutoff].head(HORIZON)
+            risk = entry - stop
+            outcome, r_mult, days, exitp = "ABIERTA", None, int(len(fwd)), None
+            for i, (_, row) in enumerate(fwd.iterrows(), 1):
+                lo, hi = row.get("Low"), row.get("High")
+                if pd.isna(lo) or pd.isna(hi):
+                    continue
+                if lo <= stop:
+                    outcome, r_mult, days, exitp = "STOP", -1.0, i, stop
+                    break
+                if hi >= t1:
+                    outcome, r_mult, days, exitp = "TARGET", 2.0, i, t1
+                    break
+            closes = fwd["Close"].dropna()
+            if outcome == "ABIERTA" and len(closes):
+                exitp = float(closes.iloc[-1])
+                r_mult = (exitp - entry) / risk
+                if len(fwd) >= HORIZON:
+                    outcome = "TIEMPO"
+            r10 = (round((float(closes.iloc[9]) / entry - 1) * 100, 2)
+                   if len(closes) >= 10 else None)
+            alpha10 = None
+            if r10 is not None and spy_close is not None:
+                try:
+                    s_entry = float(spy_close[spy_close.index <= cutoff].iloc[-1])
+                    s_fwd = spy_close[spy_close.index > cutoff]
+                    if len(s_fwd) >= 10:
+                        alpha10 = round(r10 - (float(s_fwd.iloc[9]) / s_entry - 1) * 100, 2)
+                except Exception:
+                    pass
+            signals.append(dict(
+                date=as_of, ticker=t, setup=p.get("setup"),
+                score=p.get("score_total"), entry=entry, stop=stop, t1=t1,
+                outcome=outcome, r=None if r_mult is None else round(r_mult, 2),
+                days=days, ret10=r10, alpha10=alpha10))
+
+    def _agg(rows):
+        cl = [s for s in rows if s["outcome"] in ("STOP", "TARGET", "TIEMPO")
+              and s["r"] is not None]
+        rs = [s for s in rows if s["outcome"] in ("STOP", "TARGET")]
+        wins = [s for s in rs if s["r"] > 0]
+        pos = sum(s["r"] for s in cl if s["r"] > 0)
+        neg = sum(-s["r"] for s in cl if s["r"] < 0)
+        a10 = [s["alpha10"] for s in rows if s["alpha10"] is not None]
+        return dict(
+            n=len(rows), closed=len(cl),
+            win_rate=round(len(wins) / len(rs) * 100, 1) if rs else None,
+            avg_r=round(sum(s["r"] for s in cl) / len(cl), 2) if cl else None,
+            profit_factor=round(pos / neg, 2) if neg > 0 else None,
+            avg_alpha10=round(sum(a10) / len(a10), 2) if a10 else None)
+
+    by_setup = {k: _agg([s for s in signals if s["setup"] == k])
+                for k in ("MOMENTUM", "REVERSION")}
+    _bucket = lambda s: "70+" if (s.get("score") or 0) >= 70 else \
+        ("60-70" if (s.get("score") or 0) >= 60 else "<60")
+    by_bucket = {b: _agg([s for s in signals if _bucket(s) == b])
+                 for b in ("70+", "60-70", "<60")}
+    closed = [s for s in signals if s["outcome"] in ("STOP", "TARGET", "TIEMPO")
+              and s["r"] is not None]
+    eq, cum = [], 0.0
+    for s in sorted(closed, key=lambda x: x["date"]):
+        cum += s["r"]
+        eq.append(dict(date=s["date"], ticker=s["ticker"], eq=round(cum, 2)))
+    signals.sort(key=lambda x: x["date"], reverse=True)
+    return dict(n_scans=n_scans, first=first, last=last, horizon=HORIZON,
+                overall=_agg(signals), by_setup=by_setup, by_bucket=by_bucket,
+                n_open=len([s for s in signals if s["outcome"] == "ABIERTA"]),
+                equity=eq, signals=signals[:80])
+
+
 # ----------------------------- Serie para gráficos -----------------------------
 def chart_series(f):
     tail = f.tail(CHART_DAYS)
@@ -870,6 +975,11 @@ def main():
         f = feats[p["ticker"]]
         p["day_chg"] = round((f["close"].iloc[-1] / f["close"].iloc[-2] - 1) * 100, 2)
 
+    # --- Backtest sobre scans históricos (crece solo con cada corrida)
+    backtest = run_backtest(raw)
+    log(f"Backtest: {backtest['n_scans']} scans, {backtest['overall']['n']} señales "
+        f"({backtest['overall']['closed']} cerradas, {backtest['n_open']} abiertas)")
+
     spy_tail = spy_f.tail(CHART_DAYS)
     data = dict(
         generated=datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -890,6 +1000,7 @@ def main():
         polymarket=poly, macro_ctx=ctx,
         weights=dict(tech=W_TECH, fund=W_FUND, sent=W_SENT, macro=W_MACRO),
         universe_size=valid, focus=focus, consult=consult, deep=deep,
+        backtest=backtest,
         picks=picks, watchlist=[
             {k: w[k] for k in ("ticker", "name", "sector", "setup", "score_total",
                                "score_tech", "score_fund", "score_sent",
@@ -913,7 +1024,8 @@ def main():
 
     data = clean(data)
     with open(os.path.join(DATA_DIR, f"scan_{data['as_of']}.json"), "w") as fh:
-        json.dump({k: v for k, v in data.items() if k != "consult"}, fh)
+        json.dump({k: v for k, v in data.items()
+                   if k not in ("consult", "backtest")}, fh)
 
     with open(os.path.join(BASE_DIR, "template.html"), encoding="utf-8") as fh:
         template = fh.read()

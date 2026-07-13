@@ -45,6 +45,16 @@ muestran además fundamental, sentimiento y noticias.
 reciban análisis profundo (fundamental + sentimiento) en TODAS las corridas,
 estén o no entre los mejores candidatos técnicos.
 
+## Solapa "Backtest"
+
+Evalúa automáticamente cada pick histórico contra la evolución posterior del
+precio: primer toque del objetivo 2R (+2R) o del stop (−1R), con cierre a
+mercado a las 40 ruedas. Muestra win rate, R promedio, profit factor, alfa a
+10 ruedas vs SPY, curva de R acumulado y desglose por setup y por score.
+Se alimenta de los `data/scan_*.json` que cada corrida diaria guarda, así que
+mejora sola a medida que se acumula historia (los primeros resultados cerrados
+aparecen a los pocos días; estadística con algo de sustancia, en 4-8 semanas).
+
 ## Versión en la nube (celular incluido)
 
 El repo incluye `.github/workflows/daily.yml`: GitHub Actions corre el scan
