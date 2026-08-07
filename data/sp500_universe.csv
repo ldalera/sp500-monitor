@@ -39,7 +39,7 @@ APA,APA Corporation,Energy
 APO,Apollo Global Management,Financials
 AAPL,Apple Inc.,Information Technology
 AMAT,Applied Materials,Information Technology
-APP,AppLovin,Information Technology
+APP,AppLovin,Communication Services
 APTV,Aptiv,Consumer Discretionary
 ACGL,Arch Capital Group,Financials
 ADM,Archer Daniels Midland,Consumer Staples
@@ -159,7 +159,7 @@ DOW,Dow Inc.,Materials
 DHI,D. R. Horton,Consumer Discretionary
 DTE,DTE Energy,Utilities
 DUK,Duke Energy,Utilities
-DD,DuPont,Materials
+DD,DuPont,Industrials
 ETN,Eaton Corporation,Industrials
 EBAY,eBay Inc.,Consumer Discretionary
 ECHO,EchoStar,Communication Services
