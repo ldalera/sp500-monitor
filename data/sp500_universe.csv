@@ -326,7 +326,7 @@ MCO,Moody's Corporation,Financials
 MS,Morgan Stanley,Financials
 MOS,Mosaic Company (The),Materials
 MSI,Motorola Solutions,Information Technology
-MSCI,MSCI Inc.,Financials
+MSCI,MSCI,Financials
 NDAQ,"Nasdaq, Inc.",Financials
 NTAP,NetApp,Information Technology
 NFLX,Netflix,Communication Services
@@ -346,7 +346,7 @@ NUE,Nucor,Materials
 NVDA,Nvidia,Information Technology
 NVR,"NVR, Inc.",Consumer Discretionary
 NXPI,NXP Semiconductors,Information Technology
-ORLY,O’Reilly Automotive,Consumer Discretionary
+ORLY,O'Reilly Automotive,Consumer Discretionary
 OXY,Occidental Petroleum,Energy
 ODFL,Old Dominion,Industrials
 OMC,Omnicom Group,Communication Services
@@ -393,7 +393,7 @@ REG,Regency Centers,Real Estate
 REGN,Regeneron Pharmaceuticals,Health Care
 RF,Regions Financial Corporation,Financials
 RSG,Republic Services,Industrials
-RMD,ResMed,Health Care
+RMD,ResMed|,Health Care
 RVTY,Revvity,Health Care
 HOOD,Robinhood Markets,Financials
 ROK,Rockwell Automation,Industrials
