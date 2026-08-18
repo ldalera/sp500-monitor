@@ -52,7 +52,6 @@ ATO,Atmos Energy,Utilities
 ADSK,Autodesk,Information Technology
 ADP,Automatic Data Processing,Industrials
 AZO,AutoZone,Consumer Discretionary
-AVB,AvalonBay Communities,Real Estate
 AVY,Avery Dennison,Materials
 AXON,Axon Enterprise,Industrials
 BKR,Baker Hughes,Energy
@@ -174,7 +173,6 @@ EOG,EOG Resources,Energy
 EQT,EQT Corporation,Energy
 EFX,Equifax,Industrials
 EQIX,Equinix,Real Estate
-EQR,Equity Residential,Real Estate
 ERIE,Erie Indemnity,Financials
 ESS,Essex Property Trust,Real Estate
 EL,Estée Lauder Companies (The),Consumer Staples
@@ -387,6 +385,7 @@ DGX,Quest Diagnostics,Health Care
 Q,Qnity Electronics,Information Technology
 RL,Ralph Lauren Corporation,Consumer Discretionary
 RJF,Raymond James Financial,Financials
+RDDT,Reddit,Communication Services
 RTX,RTX Corporation,Industrials
 O,Realty Income,Real Estate
 REG,Regency Centers,Real Estate
@@ -476,6 +475,7 @@ VTRS,Viatris,Health Care
 VICI,Vici Properties,Real Estate
 V,Visa Inc.,Financials
 VST,Vistra Corp.,Utilities
+VMRK,Vivmark Residential,Real Estate
 VMC,Vulcan Materials Company,Materials
 WRB,W. R. Berkley Corporation,Financials
 GWW,W. W. Grainger,Industrials
