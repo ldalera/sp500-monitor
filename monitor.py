@@ -867,6 +867,9 @@ def main():
 
     breadth50 = round(above50 / valid * 100, 1) if valid else None
     breadth200 = round(above200 / valid * 100, 1) if valid else None
+    if valid < 100:
+        log(f"⚠️  Sólo {valid}/{len(tickers)} tickers con datos válidos — "
+            f"posible falla/rate-limit de Yahoo Finance, no un día sin candidatos real.")
 
     spy_trend_up = spy_last["close"] > spy_last["sma50"] > spy_last["sma200"]
     spy_above200 = spy_last["close"] > spy_last["sma200"]
@@ -1035,7 +1038,10 @@ def main():
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(html)
     log(f"✅ Dashboard generado: {out}  ({time.time() - t0:.0f}s total)")
-    log(f"   Top pick: {picks[0]['ticker']} ({picks[0]['score_total']}/100, {picks[0]['setup']})")
+    if picks:
+        log(f"   Top pick: {picks[0]['ticker']} ({picks[0]['score_total']}/100, {picks[0]['setup']})")
+    else:
+        log("   Sin picks hoy (0 candidatos pasaron el filtro técnico)")
 
 
 if __name__ == "__main__":
